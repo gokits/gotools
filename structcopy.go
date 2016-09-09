@@ -4,13 +4,13 @@ import (
 	"reflect"
 )
 
-func deepFields(ifaceType reflect.Type) []reflect.StructField {
+func DeepFields(ifaceType reflect.Type) []reflect.StructField {
 	var fields []reflect.StructField
 
 	for i := 0; i < ifaceType.NumField(); i++ {
 		v := ifaceType.Field(i)
 		if v.Anonymous && v.Type.Kind() == reflect.Struct {
-			fields = append(fields, deepFields(v.Type)...)
+			fields = append(fields, DeepFields(v.Type)...)
 		} else {
 			fields = append(fields, v)
 		}
@@ -25,7 +25,7 @@ func StructCopy(DstStructPtr interface{}, SrcStructPtr interface{}) {
 	}
 	srcV := reflect.ValueOf(SrcStructPtr).Elem()
 	dstV := reflect.ValueOf(DstStructPtr).Elem()
-	srcfields := deepFields(reflect.ValueOf(SrcStructPtr).Elem().Type())
+	srcfields := DeepFields(reflect.ValueOf(SrcStructPtr).Elem().Type())
 	for _, v := range srcfields {
 		if v.Anonymous {
 			continue
