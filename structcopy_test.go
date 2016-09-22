@@ -51,6 +51,7 @@ type WithPtr struct {
 	C *bool
 	D *[]int
 	E *string
+	G string
 }
 
 type NoPtr struct {
@@ -59,6 +60,7 @@ type NoPtr struct {
 	D []int
 	E string
 	F bool
+	G *string
 }
 
 func TestSrcPtr(t *testing.T) {
@@ -72,6 +74,7 @@ func TestSrcPtr(t *testing.T) {
 		C: &c,
 		D: &d,
 		E: &e,
+		G: "dddd",
 	}
 
 	var dst NoPtr
@@ -87,6 +90,9 @@ func TestSrcPtr(t *testing.T) {
 	}
 	if *src.E != dst.E {
 		t.Error("field E failed")
+	}
+	if dst.G == nil || *dst.G != src.G {
+		t.Error("field G failed")
 	}
 }
 
@@ -117,5 +123,8 @@ func TestDstPtr(t *testing.T) {
 	}
 	if *dst.E != src.E {
 		t.Error("field E failed")
+	}
+	if dst.G != "" {
+		t.Error("field G failed")
 	}
 }

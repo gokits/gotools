@@ -39,7 +39,7 @@ func StructCopy(DstStructPtr interface{}, SrcStructPtr interface{}) {
 			dst.Set(src)
 			continue
 		}
-		if src.Kind() == reflect.Ptr && src.Type().Elem() == dst.Type() {
+		if src.Kind() == reflect.Ptr && !src.IsNil() && src.Type().Elem() == dst.Type() {
 			dst.Set(src.Elem())
 			continue
 		}
