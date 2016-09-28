@@ -20,11 +20,19 @@ func DeepFields(ifaceType reflect.Type) []reflect.StructField {
 }
 
 func StructCopy(DstStructPtr interface{}, SrcStructPtr interface{}) {
-	if reflect.TypeOf(DstStructPtr).Kind() != reflect.Ptr || reflect.TypeOf(SrcStructPtr).Kind() != reflect.Ptr {
-		panic("Fatal error:type of parameters  must be Ptr")
+	srcv := reflect.ValueOf(SrcStructPtr)
+	dstv := reflect.ValueOf(DstStructPtr)
+	srct := reflect.TypeOf(SrcStructPtr)
+	dstt := reflect.TypeOf(DstStructPtr)
+	if srct.Kind() != reflect.Ptr || dstt.Kind() != reflect.Ptr ||
+		srct.Elem().Kind() == reflect.Ptr || dstt.Elem().Kind() == reflect.Ptr {
+		panic("Fatal error:type of parameters must be Ptr of value")
 	}
-	srcV := reflect.ValueOf(SrcStructPtr).Elem()
-	dstV := reflect.ValueOf(DstStructPtr).Elem()
+	if srcv.IsNil() || dstv.IsNil() {
+		panic("Fatal error:value of parameters should not be nil")
+	}
+	srcV := srcv.Elem()
+	dstV := dstv.Elem()
 	srcfields := DeepFields(reflect.ValueOf(SrcStructPtr).Elem().Type())
 	for _, v := range srcfields {
 		if v.Anonymous {
