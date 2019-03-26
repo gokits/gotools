@@ -6,6 +6,51 @@ import (
 	"strings"
 )
 
+type IPVersion int
+
+const (
+	VersionUnknown IPVersion = iota
+	IPv4           IPVersion = iota
+	IPv6           IPVersion = iota
+)
+
+func ParseIPVersion(str string) IPVersion {
+	ip := net.ParseIP(str)
+	if ip == nil {
+		return VersionUnknown
+	}
+	if strings.Contains(str, ":") {
+		return IPv6
+	}
+	return IPv4
+}
+
+func IPv4ByIfaceName(iface string) (ips []net.IP, err error) {
+	var (
+		i     *net.Interface
+		addrs []net.Addr
+		ip    net.IP
+	)
+	i, err = net.InterfaceByName(iface)
+	if err != nil {
+		return
+	}
+	addrs, err = i.Addrs()
+	if err != nil {
+		return
+	}
+	for _, addr := range addrs {
+		ip, _, err = net.ParseCIDR(addr.String())
+		if err != nil {
+			continue
+		}
+		if ParseIPVersion(ip.String()) == IPv4 {
+			ips = append(ips, ip)
+		}
+	}
+	return
+}
+
 //convert ip from int64 to string
 func InetNtoa(ipnr int64) string {
 	var bytes [4]byte
