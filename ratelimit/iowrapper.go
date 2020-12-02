@@ -18,15 +18,26 @@ func (r *tbReader) Read(buf []byte) (int, error) {
 	if r.l == nil {
 		return r.r.Read(buf)
 	}
-	n, e := r.r.Read(buf)
-	if n <= 0 {
-		return n, e
+	ctx := context.Background()
+	max := len(buf)
+	total := 0
+	burst := r.l.Burst()
+	for total < max {
+		next := total + burst
+		if next > max {
+			next = max
+		}
+		n, e := r.r.Read(buf[total:next])
+		if n <= 0 {
+			return total, e
+		}
+		total += n
+		ee := r.l.WaitN(ctx, n)
+		if ee != nil {
+			return total, ee
+		}
 	}
-	ee := r.l.WaitN(context.Background(), n)
-	if ee != nil {
-		return n, ee
-	}
-	return n, e
+	return total, nil
 }
 
 func TokenBucketReader(r io.Reader, l *rate.Limiter) io.Reader {
@@ -42,12 +53,28 @@ type tbWriter struct {
 }
 
 func (w *tbWriter) Write(buf []byte) (int, error) {
-	if w.l != nil {
-		if e := w.l.WaitN(context.Background(), len(buf)); e != nil {
-			return 0, e
-		}
+	if w.l == nil {
+		return w.w.Write(buf)
 	}
-	return w.w.Write(buf)
+	ctx := context.Background()
+	max := len(buf)
+	burst := w.l.Burst()
+	total := 0
+	for total < max {
+		next := total + burst
+		if next > max {
+			next = max
+		}
+		if e := w.l.WaitN(ctx, next-total); e != nil {
+			return total, e
+		}
+		n, e := w.w.Write(buf[total:next])
+		if e != nil {
+			return total + n, e
+		}
+		total += n
+	}
+	return total, nil
 }
 
 func TokenBucketWriter(w io.Writer, l *rate.Limiter) io.Writer {

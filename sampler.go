@@ -1,7 +1,6 @@
 package gotools
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -15,7 +14,7 @@ type RandSampler struct {
 
 func NewRandSampler(ratio float64) (*RandSampler, error) {
 	if ratio < 0 || ratio > 1 {
-		return nil, errors.New(fmt.Sprintf("ratio %f invalid, must between 0 and 1", ratio))
+		return nil, fmt.Errorf("ratio %f invalid, must between 0 and 1", ratio)
 	}
 	s := rand.NewSource(time.Now().UnixNano())
 	return &RandSampler{

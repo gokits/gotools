@@ -57,5 +57,4 @@ func StructCopy(DstStructPtr interface{}, SrcStructPtr interface{}) {
 			continue
 		}
 	}
-	return
 }
